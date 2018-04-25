@@ -34,5 +34,8 @@
 # Build directory
 build/
 
+# WiFi credentials
+Keys.h
+
 # vscode editor directory
 .vscode/
