@@ -22,7 +22,7 @@
 // TODO: Should these be global variables rather than preprocessor definitions?
 
 // Debugging options
-#define SHOW_WIFI_DIAGNISTICS 0
+#define SHOW_WIFI_DIAGNISTICS 1
 
 // Define LED codes by color
 #define RED_LED LED_BUILTIN
@@ -46,6 +46,10 @@
 #include <WiFiClientSecure.h>
 #include <math.h>
 
+// TODO: remove when callAPI() works
+#include <WiFiClient.h>
+
+
 // Configuration and Private key header files (in this directory)
 #include "Keys.h"
 #include "Config.h"
@@ -66,7 +70,9 @@ private:
     Servo _servo ;
 
     // Tracker WiFi client for connection to iSENSE
-    WiFiClientSecure _client ;
+    //WiFiClientSecure _client ;
+    // TODO: switch back to clientsecure when possible
+    WiFiClient _client ;
 
     // Raw data recieved from iSENSE
     String _payload ;

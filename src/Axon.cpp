@@ -18,6 +18,9 @@
 
 #include "Axon.h"
 
+// TODO: remove this when done testing
+#include <IPAddress.h>
+
 using namespace ECG ;
 
 // Note: functions in this file should appear in the same order
@@ -79,7 +82,12 @@ bool Axon::isValid() {
 }
 
 bool Axon::isOnline() {
-    return WiFi.status() == WL_CONNECTED;
+
+    // If the device has never attempted to connect to a newtwork, it is not connected
+    if( _hasBegunWiFi == false ) return false ;
+
+    // Otherwise, check that the WiFi status is WL_CONNECTED and that the device has a valid IP address
+    return ( WiFi.status() == WL_CONNECTED ) && ( getLocalIP() != "0.0.0.0" ) ;
 }
 
 // Simple wrapper function to minimize library calls and redirect control flow through object framework
@@ -102,11 +110,11 @@ bool Axon::connectToWiFi() {
 
     // Not sure if this case is neccessary..
     // Case device already connected to WiFi
-    //if (isOnline()) return true ;
+    if ( isOnline() ) return true ;
 
     // Case first connection
     if ( _hasBegunWiFi == false) {
-        printf("WIFI BEGINSe: %d\n", WiFi.begin(Keys::WiFiSSID.c_str(), Keys::WiFiPassword.c_str())) ;
+         WiFi.begin(Keys::WiFiSSID.c_str(), Keys::WiFiPassword.c_str()) ;
         _hasBegunWiFi = true ;
 
         // The device is not properly connected to the network unless the WiFi.status()
@@ -122,7 +130,7 @@ bool Axon::connectToWiFi() {
         int halfSecondsTimeout = 60 ;
 
         Serial.printf("Connecting to WiFi network %s ", Keys::WiFiSSID.c_str()) ;
-        while ( WiFi.status() != WL_CONNECTED && getLocalIP() == "0.0.0.0" )
+        while ( isOnline() == false )
         {
             Serial.printf(".") ;
             // FIXME: remove this after testing
@@ -132,6 +140,7 @@ bool Axon::connectToWiFi() {
 
             // If the following print statement is removed, the device will crash on the subsequent line
             Serial.printf(" ") ;
+
             if ( i >= halfSecondsTimeout ) {
                 Serial.printf("\nUnable to connect to WiFi network %s. Time out after 30 seconds.\n"
                     "Switching to offline party mode...\n", Keys::WiFiSSID.c_str()) ;
@@ -154,8 +163,13 @@ bool Axon::connectToWiFi() {
     // Case reconnection
     // Should anything else be done?
     
-    // TODO:
     // If the device is disconnected, the blue LED should switch off.
+    if ( isOnline() == false ) {
+        setLED(NETWORK_LED, LED_OFF) ;
+    }
+    else {
+        setLED(NETWORK_LED, LED_ON) ;
+    }
 
     // Return the truth value of whether the device is online or not
     return isOnline() ;
@@ -165,12 +179,34 @@ bool Axon::callAPI() {
 
     // First, we must establish a connection to iSENSE
     Serial.printf("Connecting to %s on port %d... \n", Config::iSENSEHost.c_str(), Config::httpsPort) ;
+
+    /* coinmarketcap settings
+    String localhost = "api.coinmarketcap.com" ;
+    const uint16_t port = 443 ;
+    */
+
+    /* Personal server settings. Still fails because I do not quite understand TCP/IP but it makes noise on the other end
+    IPAddress dataserver_host(192, 168, 1, 25) ;
+    const uint16_t port = 2222 ;
+    Serial.printf("Connecting to dataserver URI: %s:%d...\n",dataserver_host.toString().c_str(), port) ;
+
+    // Test connection to my local server
+    if ( _client.connect(dataserver_host, port) == false ) {
+        Serial.printf("Connection failed!\n") ;
+        return false ;
+    }
+    else {
+        Serial.printf("Made it onto Joel's dataserver! wooooo\n") ;
+    }
+    */
+
     if ( !_client.connect(Config::iSENSEHost, Config::httpsPort ) ) {
         Serial.printf("Connection failed!\n") ;
         return false ;
     }
 
-    // Now we veryify the identity of the server by comparing SHA1 hash fingerprints
+    // Now we verify the identity of the server by comparing SHA1 hash fingerprints
+    /*
     if ( _client.verify(Config::iSENSEFingerprint_SHA1.c_str(), Config::iSENSEHost.c_str()) ) {
         Serial.printf("Server certificate matches locally stored certificate.\nVerification complete\n") ;
     }
@@ -178,11 +214,14 @@ bool Axon::callAPI() {
         Serial.printf("Certificate mismatch! Is the host incorrect or is someone impersonating iSENSE?\n") ;
         return false ;
     }
+    */
 
     // Next, we will construct the HTTP get request
-    String getRequest = "GET" + Config::iSENSEAPIPath + "HTTP/1.1\r\n" +
+    String getRequest = "GET " + Config::iSENSEAPIPath + Config::iSENSEAPIEndpoint + " HTTP/1.1\r\n" +
                         "Host: " + Config::iSENSEHost + "\r\n" +
                         "Connection: close\r\n\r\n" ;
+
+    Serial.printf("Sending the following request:\n%s\n", getRequest.c_str() ) ;
                     
     // Now, we send this to the server
     _client.print(getRequest) ;
@@ -199,7 +238,7 @@ bool Axon::callAPI() {
         if (line == "\r") break ;
     }
 
-    line = _client.readStringUntil('\n') ;
+    line = _client.readString() ;
     Serial.printf("%s", line.c_str() ) ;
 
     return true ;

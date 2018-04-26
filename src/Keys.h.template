@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Rename this file to Keys.h and add your WiFi credentials below to enable newtorking functionality
+// Rename this file to Keys.h and add your WiFi credentials below to enable networking functionality
 
 #ifndef KEYS_H
 #define KEYS_H
