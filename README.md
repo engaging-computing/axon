@@ -14,4 +14,11 @@ WiFi credentials into the specified area.
 Keys.h is not included in the repository to avoid pushing sensitive information to publicly accessible servers.
 
 Dependencies:
-    ArduinoJson v5.13.1 or later (included)
+    ArduinoJson v5.13.1 or later (included as submodule)
+
+To download submodules, run:
+
+```bash
+git submodule init
+git submodule update
+```
