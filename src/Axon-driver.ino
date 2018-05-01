@@ -17,7 +17,6 @@
 */
 
 #include <Arduino.h>
-#include <ESP8266HTTPClient.h>
 #include "Axon.h"
 
 void setup() {
@@ -46,6 +45,8 @@ void loop() {
   test.callAPI() ;
 
   Serial.printf("End loop(). Sleeping 5 seconds...\n") ;
+
+  //Serial.printf("\n\nxxx") ;
   test.sleep(5000) ;
 
 

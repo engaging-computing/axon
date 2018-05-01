@@ -22,7 +22,8 @@
 // TODO: Should these be global variables rather than preprocessor definitions?
 
 // Debugging options
-#define SHOW_WIFI_DIAGNISTICS 1
+#define SHOW_WIFI_DIAGNISTICS 0
+#define SHOW_HTTP_HEADERS 1
 
 // Define LED codes by color
 #define RED_LED LED_BUILTIN
@@ -46,7 +47,14 @@
 #include <WiFiClientSecure.h>
 #include <math.h>
 
+// Link to included ArduinoJson library
+#include "../../libs/ArduinoJson/src/ArduinoJson.h"
+
+// This is also an option, but it relies on the user's config instead of always just working
+//#include <ArduinoJson.h>
+
 // TODO: remove when callAPI() works
+//  Or: refactor for insecure communication. This honestly will do as none of the data is remotely confidential
 #include <WiFiClient.h>
 
 
@@ -72,6 +80,7 @@ private:
     // Tracker WiFi client for connection to iSENSE
     //WiFiClientSecure _client ;
     // TODO: switch back to clientsecure when possible
+    //      Or not? should secure connection be abandoned at the moment?
     WiFiClient _client ;
 
     // Raw data recieved from iSENSE

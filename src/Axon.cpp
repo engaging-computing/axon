@@ -18,9 +18,6 @@
 
 #include "Axon.h"
 
-// TODO: remove this when done testing
-#include <IPAddress.h>
-
 using namespace ECG ;
 
 // Note: functions in this file should appear in the same order
@@ -132,14 +129,16 @@ bool Axon::connectToWiFi() {
         Serial.printf("Connecting to WiFi network %s ", Keys::WiFiSSID.c_str()) ;
         while ( isOnline() == false )
         {
+            // An "progress bar" ticker that shows the user that the connection is in progress
             Serial.printf(".") ;
             // FIXME: remove this after testing
-            Serial.printf("%d<60",i) ;
+            //Serial.printf("%d<60",i) ;
 
             sleep(500) ;
 
             // If the following print statement is removed, the device will crash on the subsequent line
-            Serial.printf(" ") ;
+            // The above statment is no longer true for some reason...
+            //Serial.printf(" ") ;
 
             if ( i >= halfSecondsTimeout ) {
                 Serial.printf("\nUnable to connect to WiFi network %s. Time out after 30 seconds.\n"
@@ -178,35 +177,15 @@ bool Axon::connectToWiFi() {
 bool Axon::callAPI() {
 
     // First, we must establish a connection to iSENSE
-    Serial.printf("Connecting to %s on port %d... \n", Config::iSENSEHost.c_str(), Config::httpsPort) ;
+    Serial.printf("Connecting to %s on port %d... \n", Config::iSENSEHost.c_str(), Config::iSENSEPort) ;
 
-    /* coinmarketcap settings
-    String localhost = "api.coinmarketcap.com" ;
-    const uint16_t port = 443 ;
-    */
-
-    /* Personal server settings. Still fails because I do not quite understand TCP/IP but it makes noise on the other end
-    IPAddress dataserver_host(192, 168, 1, 25) ;
-    const uint16_t port = 2222 ;
-    Serial.printf("Connecting to dataserver URI: %s:%d...\n",dataserver_host.toString().c_str(), port) ;
-
-    // Test connection to my local server
-    if ( _client.connect(dataserver_host, port) == false ) {
-        Serial.printf("Connection failed!\n") ;
-        return false ;
-    }
-    else {
-        Serial.printf("Made it onto Joel's dataserver! wooooo\n") ;
-    }
-    */
-
-    if ( !_client.connect(Config::iSENSEHost, Config::httpsPort ) ) {
+    if ( !_client.connect(Config::iSENSEHost, Config::iSENSEPort) ) {
         Serial.printf("Connection failed!\n") ;
         return false ;
     }
 
     // Now we verify the identity of the server by comparing SHA1 hash fingerprints
-    /*
+    /* FIXME: we cannot do this if we are not using https....
     if ( _client.verify(Config::iSENSEFingerprint_SHA1.c_str(), Config::iSENSEHost.c_str()) ) {
         Serial.printf("Server certificate matches locally stored certificate.\nVerification complete\n") ;
     }
@@ -221,25 +200,74 @@ bool Axon::callAPI() {
                         "Host: " + Config::iSENSEHost + "\r\n" +
                         "Connection: close\r\n\r\n" ;
 
-    Serial.printf("Sending the following request:\n%s\n", getRequest.c_str() ) ;
+    // Display request being sent for debug purposes if the option has been set in Axon.h
+    if (SHOW_HTTP_HEADERS) {
+        Serial.printf("Sending the following request:\n%s\n", getRequest.c_str() ) ;
+    }
                     
     // Now, we send this to the server
     _client.print(getRequest) ;
 
     // The client now reads the response sent by the server
-    Serial.printf("RESPONSE FOLLOWS:\n") ;
 
     //TODO: actually save instead of dumping
 
+    // Stores each line read from server for each read from the socket
     String line ;
+
+    // Stores the http response code of a given response in order to handle non-200 responses
+    String responseCode ;
+
+    // This variable tracks whether the current iteration is the first in order to handle the HTTP response code
+    bool isFirstLine = true ;
+
+    // Get the HTTP response from the server, but ignore lines until the end of the header (i.e. "\r\n")
     while (_client.connected()) {
         line = _client.readStringUntil('\n') ;
-        Serial.printf("%s", line.c_str() ) ;
+
+        // TODO: read the http response code
+        // If this is the first line, the HTTP response code is on this line
+        if (isFirstLine == true) {
+            // It is always in the same place as well, how convienient to have such a standardized protocol at times like these
+            
+            // The index at which the response code begins is the size of the preceeding substring in the response
+            const uint8_t indexOfResponseSubstring = String("HTTP/1.1 ").length() ;
+
+            // An http response code is 3 digits long
+            const uint8_t httpResponseCodeLength = 3 ;
+            
+            // So, the response code is the substring of the first line from its begining index until its begining index plus its length
+            responseCode = line.substring(indexOfResponseSubstring, indexOfResponseSubstring + httpResponseCodeLength) ;
+
+            // Take this opportunity to print some debug
+            if (SHOW_HTTP_HEADERS) {
+                Serial.printf("RESPONSE FOLLOWS\n") ;
+            }
+        }
+
+        // As above, display headers if the following option has been set
+        if (SHOW_HTTP_HEADERS) {
+            Serial.printf("%s\n", line.c_str()) ;
+        }
+
+        // After a single itertion, this should be perpetually false
+        isFirstLine = false ;
+
+        // If the string of characters on a line before the newline is just an '\r', the header is over
         if (line == "\r") break ;
     }
 
+    // TODO: handle different response code cases:
+    //  200: save payload
+    //  404: invalid address, alert user, set _valid to false
+    //  else: unknown error, alert user, set _valid to false
+    //      Note: should the main device loop be while(_valid) ?
+
+    Serial.printf("Server returned http code [%s]\n", responseCode.c_str()) ;
+
+    // Temporary code to just read the rest and dump it to output
     line = _client.readString() ;
-    Serial.printf("%s", line.c_str() ) ;
+    Serial.printf("[%s]", line.c_str() ) ;
 
     return true ;
 }

@@ -12,3 +12,6 @@ To specify WiFi credentials, make a copy of Keys.h.template and rename it to Key
 WiFi credentials into the specified area.
 
 Keys.h is not included in the repository to avoid pushing sensitive information to publicly accessible servers.
+
+Dependencies:
+    ArduinoJson v5.13.1 or later (included)

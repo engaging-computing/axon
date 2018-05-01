@@ -23,12 +23,26 @@ namespace Config {
 
 //const String deviceName = "pudding" ;
 
+// The domain name of iSENSE
 const String iSENSEHost = "isenseproject.org" ;
+
+// The path the the version of the API to be targeted
 const String iSENSEAPIPath = "/api/v1" ;
-const String iSENSEAPIEndpoint = "/projects/1283" ;
+
+// The path to the particular endpoint to be targeted within the API
+const String iSENSEAPIEndpoint = "/projects/1234" ;
+
+// iSENSE certificate fingerprint FIXME: this is irelevant if https is broken
 const String iSENSEFingerprint_SHA1 = "04 C2 40 07 A4 AE 98 71 76 A3 60 ED 3A 33 4E 89 28 B7 D4 4C" ;
 
-const uint16_t httpsPort = 80 ;
+// TODO: lmao refactor ASAP this variable name is wrong
+const uint16_t iSENSEPort = 80 ;
+
+/*
+    TODO:
+    -- add a place to specify what information is being requested
+    -- add a way to specify the display method (linear, logarithmic, binary)
+*/
 
 } // namespace Config
 
