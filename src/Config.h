@@ -35,7 +35,7 @@ const String iSENSEAPIEndpoint = "/projects/1234" ;
 // iSENSE certificate fingerprint FIXME: this is irelevant if https is broken
 const String iSENSEFingerprint_SHA1 = "04 C2 40 07 A4 AE 98 71 76 A3 60 ED 3A 33 4E 89 28 B7 D4 4C" ;
 
-// TODO: lmao refactor ASAP this variable name is wrong
+// Port to use in connection to iSENSE
 const uint16_t iSENSEPort = 80 ;
 
 /*
@@ -43,6 +43,9 @@ const uint16_t iSENSEPort = 80 ;
     -- add a place to specify what information is being requested
     -- add a way to specify the display method (linear, logarithmic, binary)
 */
+
+// This may not be the best way to do this
+const String targetKey = "dataSetCount" ;
 
 } // namespace Config
 

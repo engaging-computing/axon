@@ -24,6 +24,7 @@
 // Debugging options
 #define SHOW_WIFI_DIAGNISTICS 0
 #define SHOW_HTTP_HEADERS 1
+#define SHOW_PAYLOAD 1
 
 // Define LED codes by color
 #define RED_LED LED_BUILTIN
@@ -84,7 +85,11 @@ private:
     WiFiClient _client ;
 
     // Raw data recieved from iSENSE
+    // Should be empty unless the device is invalid
     String _payload ;
+
+    // Data to be displayed using servo
+    String _targetValue ;
 
     /*
     * Set a device LED on or off
@@ -153,6 +158,13 @@ public:
     * Return: true if data is retrieved from iSENSE, else false
     */
     bool callAPI() ;
+
+    /*
+    * Parses locally stored payload if it is valid and finds desired data specified by the user in Config.h
+    * 
+    * Return: true if the data was found, else false
+    */
+    bool parseJson() ;
 
     /*
     * Get the device's local IP address

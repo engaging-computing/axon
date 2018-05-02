@@ -39,10 +39,12 @@ void loop() {
 
   //test.isOnline() ;
   test.connectToWiFi() ;
+  
   Serial.printf("WiFi.status() == %d\n", WiFi.status()) ;
   Serial.printf("Local device IP: %s\n", test.getLocalIP().c_str()) ;
-
+  
   test.callAPI() ;
+  test.parseJson() ;
 
   Serial.printf("End loop(). Sleeping 5 seconds...\n") ;
 

@@ -59,8 +59,11 @@ Axon::Axon() {
     // Demonstrate to the user that components are functioning properly
     debugDance() ;
 
-    // The deice has not connecte to WiFi yet, so hasBegunWiFi should be false
+    // The device has not connecte to WiFi yet, so hasBegunWiFi should be false
     _hasBegunWiFi = false ;
+
+    // Set the initial payload to an empty string
+    _payload = "" ;
 
     // If the flag is toggled in Axon.h, enable the output of device debug information
     if (SHOW_WIFI_DIAGNISTICS) {
@@ -257,19 +260,77 @@ bool Axon::callAPI() {
         if (line == "\r") break ;
     }
 
-    // TODO: handle different response code cases:
-    //  200: save payload
-    //  404: invalid address, alert user, set _valid to false
-    //  else: unknown error, alert user, set _valid to false
-    //      Note: should the main device loop be while(_valid) ?
+    /*
+        The retrieved JSON is preceeded and suceeded by strange three digit hex values and I do not know why yet
+        Until then, I will just ignore the first line and save the second, the one with the actual JSON
 
-    Serial.printf("Server returned http code [%s]\n", responseCode.c_str()) ;
+    */
 
-    // Temporary code to just read the rest and dump it to output
-    line = _client.readString() ;
-    Serial.printf("[%s]", line.c_str() ) ;
+    // Case: Successful get
+    if (responseCode == "200") {
 
-    return true ;
+        // Ignore first line
+        _client.readStringUntil('\n') ;
+
+        // Save second line
+        _payload = _client.readStringUntil('\n') ;
+
+        // Ignore the rest
+        _client.readString() ;
+        return true ;
+    }
+    // Case: Resource not found
+    else
+    if (responseCode == "404") {
+        Serial.printf("API endpoint not found on ISENSE! Device config invalid.\n") ;
+        _payload = "" ;
+        _valid = false ;
+        return false ;
+    }
+    // Case: Unkown error
+    else {
+        Serial.printf("An unknown error occured. This might not be local.\n") ;
+        _payload = "" ;
+        return false ;
+    }
+}
+
+bool Axon::parseJson() {
+
+    // If the option is toggled in Axon.h, show the payload to be parsed
+    if (SHOW_PAYLOAD) {
+        Serial.printf(
+            "Parsing the following data: %s\n",
+            _payload != ""
+            ? _payload.c_str()
+            : "(invalid or no data)"
+        ) ;
+    }
+
+    // Case: invalid payload
+    // Do nothing
+    if (_payload == "") {
+        return false ;
+    }
+
+    // Case: payload exists
+    // We use the ArduinoJson library
+    DynamicJsonBuffer jsonBuffer ;
+    JsonObject& dataRoot = jsonBuffer.parseObject(_payload) ;
+
+    // Check for parsing failure
+    if (dataRoot.success() == false) {
+        Serial.printf("There was an error parsing the retrieved JSON\n") ;
+        return false ;
+    }
+    // If there was no error, get the value corresponding to the key specified in config and save it
+    // TODO: method to get nested values
+    else {
+        String temp = dataRoot[Config::targetKey] ;
+        _targetValue = temp ;
+        printf("Got value: %s\n", _targetValue.c_str()) ;
+        return true ;
+    }
 }
 
 // TODO: carefully read arduino WiFi documentation
