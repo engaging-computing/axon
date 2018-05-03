@@ -100,7 +100,7 @@ private:
     *   state: This is also intended to be a macro that corresponds to whether an
     *       LED is to be turned on or off. LED_ON and LED_OFF are defined above.
     */ 
-    void setLED(int LEDCode, bool state) ;
+    void setLED(uint8_t LEDCode, bool state) ;
 
     /*
     * Move the servo to an angle between 0 and 180 at a given speed
@@ -114,8 +114,8 @@ private:
     *       If the (int) version is called, the speed will be set to the default value.
     *       The default value is defined above the implementation of this function.
     */
-    void moveServo(int angle, int speed) ;
-    void moveServo(int angle) ;
+    void moveServo(uint16_t angle, uint16_t speed) ;
+    void moveServo(uint16_t angle) ;
 
 public:
 
@@ -142,7 +142,7 @@ public:
     * Parameters:
     *   milliseconds: Time in milliseconds for the device to freeze and do nothing.
     */
-    void sleep(unsigned long milliseconds) ;
+    void sleep(uint32_t milliseconds) ;
 
     /*
     * Attempts to connect or reconnect to the WiFi network with the settings described
@@ -158,6 +158,13 @@ public:
     * Return: true if data is retrieved from iSENSE, else false
     */
     bool callAPI() ;
+
+    /*
+    * Take retrieved value and update the servo arm display based on config
+    * 
+    * Return: true if display is updated, else false
+    */
+    bool updateDisplay() ;
 
     /*
     * Parses locally stored payload if it is valid and finds desired data specified by the user in Config.h
@@ -192,7 +199,7 @@ public:
     *       as parameters
     */
     void debugDance() ;
-    void debugDance(int speed) ;
+    void debugDance(uint16_t speed) ;
 
 } ; // class Axon
 

@@ -23,7 +23,7 @@ using namespace ECG ;
 // Note: functions in this file should appear in the same order
 // as their declerations appear in their header.
 
-void Axon::setLED(int LEDCode, bool state) {
+void Axon::setLED(uint8_t LEDCode, bool state) {
 
     // Case: LEDCode is invalid
     // Tell user and then return to caller
@@ -91,7 +91,7 @@ bool Axon::isOnline() {
 }
 
 // Simple wrapper function to minimize library calls and redirect control flow through object framework
-void Axon::sleep(unsigned long milliseconds) {
+void Axon::sleep(uint32_t milliseconds) {
     delay(milliseconds) ;
 }
 
@@ -122,12 +122,12 @@ bool Axon::connectToWiFi() {
         // Also, break out of the connection loop after thirty seconds and let the user
         // know there was an error connecting to WiFi. The counter variable i will be 
         // used for this purpose
-        int i = 0 ;
+        uint32_t i = 0 ;
 
         // This variable stores the number of half seconds (1000ms/2) that the device attempts
         // to connect to WiFi before timing out. The choice of units is due to the half second (500ms)
         // delay between the printing of '.'s
-        int halfSecondsTimeout = 60 ;
+        uint32_t halfSecondsTimeout = 60 ;
 
         Serial.printf("Connecting to WiFi network %s ", Keys::WiFiSSID.c_str()) ;
         while ( isOnline() == false )
@@ -333,6 +333,30 @@ bool Axon::parseJson() {
     }
 }
 
+bool Axon::updateDisplay() {
+
+    // This function converts the distance of the retrieved value between the begining and the end of the specified range to an angle
+
+    double doubleTargetValue = strtod(_targetValue.c_str(),nullptr) ;
+
+    // Case: retrieved value is below or at lower bound of display range
+    if (doubleTargetValue <= Config::displayLowBound) {
+        // Move servo to lowest possible position 
+        moveServo(0) ;
+    }
+    else
+    // Case: retrieved values is above or at higher bound of display range
+    if (doubleTargetValue >= Config::displayHighBound) {
+        // Move servo to highest possible position
+        moveServo(180) ;
+    }
+    // Case: the retrieved value is in bounds
+    else {
+        // Calculate appropriate angle
+        moveServo( (uint16_t) round( 180.0 * ( doubleTargetValue / ( Config::displayHighBound - Config::displayLowBound ) ) ) ) ;
+    }
+}
+
 // TODO: carefully read arduino WiFi documentation
 String Axon::getLocalIP() {
 
@@ -364,7 +388,7 @@ void Axon::endlessDebugFlash() {
 }
 
 // I think there should be defined constants speed. Currently, this is TODO
-void Axon::debugDance(int speed) {
+void Axon::debugDance(uint16_t speed) {
 
     // TODO: speed adjustments
     // For now, speed will always be 1 (and hence a meaningless parameter)
@@ -374,7 +398,7 @@ void Axon::debugDance(int speed) {
     // Let the dance begin
 
     // Alternate blink twice to start
-    for(int i = 0; i < 2; i++) {
+    for(uint8_t i = 0; i < 2; i++) {
         // Quick red blink
         setLED(RED_LED,LED_ON) ;
         sleep(200 * speed) ;
@@ -392,7 +416,7 @@ void Axon::debugDance(int speed) {
     sleep(200 * speed) ;
 
     // Triple blink of both LEDs
-    for(int i = 0; i < 3; i++) {
+    for(uint8_t i = 0; i < 3; i++) {
         setLED(BLUE_LED,LED_ON) ;
         setLED(RED_LED,LED_ON) ;
         sleep(200 * speed) ;
@@ -409,7 +433,7 @@ void Axon::debugDance(int speed) {
 
 
     // Another Triple blink of both LEDs
-    for(int i = 0; i < 3; i++) {
+    for(uint8_t i = 0; i < 3; i++) {
         setLED(BLUE_LED,LED_ON) ;
         setLED(RED_LED,LED_ON) ;
         sleep(200 * speed) ;
@@ -421,7 +445,7 @@ void Axon::debugDance(int speed) {
 
 // This global variabel is declared here because it is only relevant to the parameterless
 // call of debugDance()
-const int DANCE_SPEED_DEFAULT = 1 ;
+const uint16_t DANCE_SPEED_DEFAULT = 1 ;
 
 void Axon::debugDance() {
     // Simply calls the (int) version of itself with default speed
@@ -429,13 +453,13 @@ void Axon::debugDance() {
 }
 
 // This global variable is declared here because it is only relevant to moveServo
-const int DEFAULT_SERVO_SPEED = 90 ; // Degrees per second
+const uint16_t DEFAULT_SERVO_SPEED = 90 ; // Degrees per second
 
-void Axon::moveServo(int angle, int speed) {
+void Axon::moveServo(uint16_t angle, uint16_t speed) {
 
     // This modding by 181 is to ensure that all values written to the servo
     // are between 0 and 180
-    int fixedAngle = angle % 181 ;
+    uint16_t fixedAngle = angle % 181 ;
 
     // If the speed argument is outside of the range 1 to 360, use the default value defined above
     if (speed > 360 || speed < 1) {
@@ -443,12 +467,12 @@ void Axon::moveServo(int angle, int speed) {
     }
 
     // A second's worth of milliseconds 
-    unsigned long msSecond = 1000 ;
+    uint32_t msSecond = 1000 ;
 
     // Turn the speed parameter into a usable delay between angle increments
     // by dividing a second's worth of milliseconds by the integer speed parameter
     // using floating point division, effectively treating speed as 'degrees per second'
-    unsigned long adjustedDelay = (unsigned long) ( round ((double) msSecond / speed )) ;
+    uint32_t adjustedDelay = (uint32_t) ( round ((double) msSecond / speed )) ;
 
     Serial.printf("Begin move to fixed angle %d\n", fixedAngle) ;
 
@@ -479,7 +503,7 @@ void Axon::moveServo(int angle, int speed) {
     // coeffifient of (-1) or (1) to fix increment for different directions
 }
 
-void Axon::moveServo(int angle) {
+void Axon::moveServo(uint16_t angle) {
     // This function simply calls the (int,int) version of itself with the default speed value
     moveServo(angle, DEFAULT_SERVO_SPEED) ;
 }

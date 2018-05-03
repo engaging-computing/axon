@@ -45,6 +45,7 @@ void loop() {
   
   test.callAPI() ;
   test.parseJson() ;
+  test.updateDisplay() ;
 
   Serial.printf("End loop(). Sleeping 5 seconds...\n") ;
 

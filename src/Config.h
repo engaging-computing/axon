@@ -47,6 +47,9 @@ const uint16_t iSENSEPort = 80 ;
 // This may not be the best way to do this
 const String targetKey = "dataSetCount" ;
 
+const double displayLowBound = 0 ;
+const double displayHighBound = 300.0 ;
+
 } // namespace Config
 
 #endif // CONFIG_H
