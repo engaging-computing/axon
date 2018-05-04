@@ -295,6 +295,48 @@ bool Axon::callAPI() {
     }
 }
 
+bool Axon::parseJson_manualFallback() {
+    
+    /*
+    const String superTest = "This:is:a:string" ;
+    const String subTest = "is" ;
+    int indexTest = superTest.indexOf(subTest) ;
+    Serial.printf("test index is:%d\n", indexTest) ;
+    
+
+    Serial.printf("Searching for key (%s) in data (%s)...\n",
+        Config::targetKey.c_str(), _payload.c_str()) ;
+        */
+    
+    uint16_t indexOfKey = _payload.indexOf(Config::targetKey) ;
+    if ( indexOfKey == -1 ) {
+        Serial.printf("could not find target key manually\n") ;
+        return false ;
+    }
+    Serial.printf("index of key is:%d\n",indexOfKey) ;
+
+    uint16_t lengthOfKey = Config::targetKey.length() ;
+
+    uint16_t firstIndexOfData = indexOfKey + lengthOfKey + 2 ;
+
+    String targetValue = "" ;
+
+    uint8_t indexCounter = 0;
+    while(_payload.charAt(firstIndexOfData + indexCounter) != ',') {
+        Serial.printf("Scanning over this char: %c\n",_payload.charAt(firstIndexOfData + indexCounter)) ;
+        targetValue += _payload.charAt(firstIndexOfData + indexCounter) ;
+        indexCounter++ ;
+        // if the counter goes past 20 there is probably an error so fail
+        if ( indexCounter >= 20) {
+            return false ;
+        }
+    }
+
+    _targetValue = targetValue ;
+    return true ;
+
+ }
+
 bool Axon::parseJson() {
 
     // If the option is toggled in Axon.h, show the payload to be parsed
@@ -321,14 +363,23 @@ bool Axon::parseJson() {
     // Check for parsing failure
     if (dataRoot.success() == false) {
         Serial.printf("There was an error parsing the retrieved JSON\n") ;
-        return false ;
+
+        // Try the manual and hastily written manual fallback before failing
+        if ( parseJson_manualFallback() == false ) {
+            Serial.printf("Manual parse failed!\n") ;
+            return false ;
+        }
+        else {
+            Serial.printf("Got value: %s\n", _targetValue.c_str()) ;
+            return true ;
+        }
     }
     // If there was no error, get the value corresponding to the key specified in config and save it
     // TODO: method to get nested values
     else {
         String temp = dataRoot[Config::targetKey] ;
         _targetValue = temp ;
-        printf("Got value: %s\n", _targetValue.c_str()) ;
+        Serial.printf("Got value: %s\n", _targetValue.c_str()) ;
         return true ;
     }
 }
@@ -338,6 +389,9 @@ bool Axon::updateDisplay() {
     // This function converts the distance of the retrieved value between the begining and the end of the specified range to an angle
 
     double doubleTargetValue = strtod(_targetValue.c_str(),nullptr) ;
+
+    Serial.printf("display value of %lf between %lf and %lf\n", doubleTargetValue,
+         Config::displayLowBound, Config::displayHighBound) ;
 
     // Case: retrieved value is below or at lower bound of display range
     if (doubleTargetValue <= Config::displayLowBound) {
@@ -353,7 +407,10 @@ bool Axon::updateDisplay() {
     // Case: the retrieved value is in bounds
     else {
         // Calculate appropriate angle
-        moveServo( (uint16_t) round( 180.0 * ( doubleTargetValue / ( Config::displayHighBound - Config::displayLowBound ) ) ) ) ;
+        Serial.printf("divide %lf by %lf to get %lf.\n", doubleTargetValue,
+            Config::displayHighBound - Config::displayLowBound,
+            doubleTargetValue / ( Config::displayHighBound - Config::displayLowBound )) ;
+        moveServo( (uint16_t) round( 180.0 * ( ( doubleTargetValue - Config::displayLowBound )/ ( Config::displayHighBound - Config::displayLowBound ) ) ) ) ;
     }
 }
 

@@ -30,7 +30,7 @@ const String iSENSEHost = "isenseproject.org" ;
 const String iSENSEAPIPath = "/api/v1" ;
 
 // The path to the particular endpoint to be targeted within the API
-const String iSENSEAPIEndpoint = "/projects/1234" ;
+const String iSENSEAPIEndpoint = "/projects/2156" ;
 
 // iSENSE certificate fingerprint FIXME: this is irelevant if https is broken
 const String iSENSEFingerprint_SHA1 = "04 C2 40 07 A4 AE 98 71 76 A3 60 ED 3A 33 4E 89 28 B7 D4 4C" ;
@@ -47,8 +47,8 @@ const uint16_t iSENSEPort = 80 ;
 // This may not be the best way to do this
 const String targetKey = "dataSetCount" ;
 
-const double displayLowBound = 0 ;
-const double displayHighBound = 300.0 ;
+const double displayLowBound = 1600;
+const double displayHighBound = 1700.0 ;
 
 } // namespace Config
 

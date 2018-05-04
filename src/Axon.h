@@ -174,6 +174,14 @@ public:
     bool parseJson() ;
 
     /*
+    * Parses locally stored payload if it is valid and finds desired data specified by the user in Config.h
+    * Manual parsing backup as a last resort for when ArduinoJson fails due to corruption of data
+    * 
+    * Return: true if the data was found, else false
+    */
+    bool parseJson_manualFallback() ;
+
+    /*
     * Get the device's local IP address
     * 
     * Return: A stringified IP address if the device has connected to WiFi, otherwise "not connected"
