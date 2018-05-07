@@ -162,8 +162,10 @@ bool Axon::connectToWiFi() {
         
         return true ;
     }
-    // Case reconnection
+    // TODO: Case reconnection
     // Should anything else be done?
+    // I beleive the device will automatically attempt to reconenct
+
     
     // If the device is disconnected, the blue LED should switch off.
     if ( isOnline() == false ) {
@@ -173,8 +175,15 @@ bool Axon::connectToWiFi() {
         setLED(NETWORK_LED, LED_ON) ;
     }
 
-    // Return the truth value of whether the device is online or not
-    return isOnline() ;
+    // If the device still is not online, it is in an invalid state (perhaps it was moved)
+    if (!isOnline()) {
+        _valid = false ;
+        return false ;
+    }
+    // Otherwise, all is fine and dandy. Return successfully and continue business as usual.
+    else {
+        return true ;
+    }
 }
 
 bool Axon::callAPI() {
@@ -297,16 +306,13 @@ bool Axon::callAPI() {
 
 bool Axon::parseJson_manualFallback() {
     
-    /*
-    const String superTest = "This:is:a:string" ;
-    const String subTest = "is" ;
-    int indexTest = superTest.indexOf(subTest) ;
-    Serial.printf("test index is:%d\n", indexTest) ;
-    
+    // If ArduinoJson is unable to parse the payload, it may be incomplete
+    // We will attempt to manually parse the string ourselves using the library
+    // methods of class String
 
+    // First we check to see if the target JSON key is in the retrieved string
     Serial.printf("Searching for key (%s) in data (%s)...\n",
         Config::targetKey.c_str(), _payload.c_str()) ;
-        */
     
     uint16_t indexOfKey = _payload.indexOf(Config::targetKey) ;
     if ( indexOfKey == -1 ) {
@@ -317,22 +323,47 @@ bool Axon::parseJson_manualFallback() {
 
     uint16_t lengthOfKey = Config::targetKey.length() ;
 
+    // If the target key is present, the data, if retrieved, will be at the index of the target key
+    // plus the length of the key plus two more characters (A '\"' and a ',')
+
     uint16_t firstIndexOfData = indexOfKey + lengthOfKey + 2 ;
 
     String targetValue = "" ;
 
+    // Now if the target value is present and is of a type convertable to a double, it will following
+    // from the calculated index and be terminated by a ','
     uint8_t indexCounter = 0;
     while(_payload.charAt(firstIndexOfData + indexCounter) != ',') {
         Serial.printf("Scanning over this char: %c\n",_payload.charAt(firstIndexOfData + indexCounter)) ;
         targetValue += _payload.charAt(firstIndexOfData + indexCounter) ;
         indexCounter++ ;
-        // if the counter goes past 20 there is probably an error so fail
-        if ( indexCounter >= 20) {
+
+        // If the counter goes past 20 there is probably an error with the data so just fail
+        // In addition, dont loop past the end of the payload. I believe there are protections
+        // against segfaults, but there is not point wasting time on what is then evidently
+        // a failed parse
+        // This is to prevent cases of invalid data being return and reported as valid
+        if ( indexCounter >= 20 || firstIndexOfData + indexCounter >= _payload.length()) {
             return false ;
         }
     }
 
+    // Now at last we must ensure that the data is indeed of a type convertable to a double
+    // and not some random garbage
+
+    // If conversion succeeds and does not return 0 (unless the string is "0") then the
+    // retrieved value is convertible. If both of these things are not true, fail hard
+    if (strtod(targetValue.c_str(), nullptr) == 0 && targetValue != "0") {
+        return false ;
+    }
+
+    // TODO: check if this is sufficient validation
+
+    // If the control flow has got to this point, the locally scoped targetValue should be
+    // correct, so copy it to the object's instance _targetValue before returning with success.
     _targetValue = targetValue ;
+
+    // At this point, the manual parse has succeeded. Cool.
     return true ;
 
  }
@@ -349,9 +380,9 @@ bool Axon::parseJson() {
         ) ;
     }
 
-    // Case: invalid payload
-    // Do nothing
+    // Case: invalid/no payload
     if (_payload == "") {
+        // Fail
         return false ;
     }
 
@@ -362,15 +393,22 @@ bool Axon::parseJson() {
 
     // Check for parsing failure
     if (dataRoot.success() == false) {
-        Serial.printf("There was an error parsing the retrieved JSON\n") ;
+        Serial.printf("There was an error parsing the retrieved JSON!\n") ;
 
         // Try the manual and hastily written manual fallback before failing
+        Serial.printf("Attempting to parse the JSON manually...\n") ;
         if ( parseJson_manualFallback() == false ) {
-            Serial.printf("Manual parse failed!\n") ;
+            
+            // If the second parsing attempt fails, just admid 
+            Serial.printf("Manual parse failed! Is the config invalid?\n") ;
+
+            // The device is in an invalid state if the JSON is successfully retrieved but unparsable
+            _valid = false ;
+
             return false ;
         }
         else {
-            Serial.printf("Got value: %s\n", _targetValue.c_str()) ;
+            Serial.printf("Manual parse found value: %s\n", _targetValue.c_str()) ;
             return true ;
         }
     }
@@ -379,7 +417,7 @@ bool Axon::parseJson() {
     else {
         String temp = dataRoot[Config::targetKey] ;
         _targetValue = temp ;
-        Serial.printf("Got value: %s\n", _targetValue.c_str()) ;
+        Serial.printf("ArduinoJson parse found value: %s\n", _targetValue.c_str()) ;
         return true ;
     }
 }
@@ -407,7 +445,7 @@ bool Axon::updateDisplay() {
     // Case: the retrieved value is in bounds
     else {
         // Calculate appropriate angle
-        Serial.printf("divide %lf by %lf to get %lf.\n", doubleTargetValue,
+        Serial.printf("divide %lf by %lf to get %lf degree display angle.\n", doubleTargetValue,
             Config::displayHighBound - Config::displayLowBound,
             doubleTargetValue / ( Config::displayHighBound - Config::displayLowBound )) ;
         moveServo( (uint16_t) round( 180.0 * ( ( doubleTargetValue - Config::displayLowBound )/ ( Config::displayHighBound - Config::displayLowBound ) ) ) ) ;
@@ -531,12 +569,17 @@ void Axon::moveServo(uint16_t angle, uint16_t speed) {
     // using floating point division, effectively treating speed as 'degrees per second'
     uint32_t adjustedDelay = (uint32_t) ( round ((double) msSecond / speed )) ;
 
-    Serial.printf("Begin move to fixed angle %d\n", fixedAngle) ;
+    // If the option is set, tell the user that the servo is being moved and to where
+    if (SHOW_SERVO_MOVES) {
+        Serial.printf("Begin move to angle %d\n", fixedAngle) ;
+    }
 
     // Case: requested angle is equal to current angle
     if (fixedAngle == _servo.read()) {
-        // TODO: should there be a delay?
-        Serial.printf("No Write. Angle is %d\n", _servo.read()) ;
+        // If the option is set, tell the user there is no need to move
+        if (SHOW_SERVO_MOVES) {
+            Serial.printf("No Write. Angle is %d\n", _servo.read()) ;
+        }
         return ;
     }
     // Case: Requested angle is smaller than current angle

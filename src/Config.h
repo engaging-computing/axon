@@ -21,6 +21,7 @@
 
 namespace Config {
 
+// A joke
 //const String deviceName = "pudding" ;
 
 // The domain name of iSENSE
@@ -30,6 +31,7 @@ const String iSENSEHost = "isenseproject.org" ;
 const String iSENSEAPIPath = "/api/v1" ;
 
 // The path to the particular endpoint to be targeted within the API
+// /projects/2156 is Plinko!
 const String iSENSEAPIEndpoint = "/projects/2156" ;
 
 // iSENSE certificate fingerprint FIXME: this is irelevant if https is broken
@@ -40,13 +42,16 @@ const uint16_t iSENSEPort = 80 ;
 
 /*
     TODO:
-    -- add a place to specify what information is being requested
     -- add a way to specify the display method (linear, logarithmic, binary)
+    -- add more display methods
 */
 
 // This may not be the best way to do this
 const String targetKey = "dataSetCount" ;
 
+// The expected range of the retrieved value. The servo arm will be adjusted to show how far
+// the retrieved values is between these values. If the value is outside this range, the servo
+// arm will be moved to either extreme position (0 for <= low bound, 180 for >= high bound)
 const double displayLowBound = 1600;
 const double displayHighBound = 1700.0 ;
 

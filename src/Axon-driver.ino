@@ -24,33 +24,24 @@ void setup() {
 }
 
 void loop() {
-  static ECG::Axon test;
+  // Initialize device
+  static ECG::Axon device ;
 
-  //Serial.printf("Is this a valid object? [%d]\n", test.isValid()) ;
-  //test.endlessDebugFlash() ;
+  // Loop through a basic operational loop until the device ends up in an invalid state
+  while (device.isValid()) {
+    device.connectToWiFi() ;
+    device.callAPI() ;
+    device.parseJson() ;
+    device.updateDisplay() ;
+    device.sleep(5000) ;
+  }
 
-  // 90 Degrees per second
-  // 2 seconds each way
-  //test.moveServo_pub(180) ;
-  //test.moveServo_pub(0) ;
-
-  // Test debug dance
-  //test.debugDance() ;
-
-  //test.isOnline() ;
-  test.connectToWiFi() ;
-  
-  Serial.printf("WiFi.status() == %d\n", WiFi.status()) ;
-  Serial.printf("Local device IP: %s\n", test.getLocalIP().c_str()) ;
-  
-  test.callAPI() ;
-  test.parseJson() ;
-  test.updateDisplay() ;
-
-  Serial.printf("End loop(). Sleeping 5 seconds...\n") ;
-
-  //Serial.printf("\n\nxxx") ;
-  test.sleep(5000) ;
-
-
+  // If the device is in an invalid state, make an obvious flashing pattern to alert the user
+  // TODO: report where things went wrong. (If this is not already somewhat implemented
+  //by various printf's at points of failure
+  if (!device.isValid()) {
+    Serial.printf("The device config is invalid. Please check config.h.\n"
+      "Switching to offline party mode...\n") ;
+      device.endlessDebugFlash() ;
+  }
 }
