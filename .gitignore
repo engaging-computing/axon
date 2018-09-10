@@ -39,3 +39,6 @@ Keys.h
 
 # vscode editor directory
 .vscode/
+
+# Don't include the libs
+src/libs

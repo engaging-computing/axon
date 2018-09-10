@@ -1,3 +1,3 @@
 [submodule "ArduinoJson"]
-	path = libs/ArduinoJson
+	path = src/libs/ArduinoJson
 	url = https://github.com/bblanchon/ArduinoJson
