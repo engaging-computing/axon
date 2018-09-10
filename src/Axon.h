@@ -50,7 +50,7 @@
 #include <math.h>
 
 // Link to included ArduinoJson library
-#include "../../libs/ArduinoJson/src/ArduinoJson.h"
+#include "../libs/ArduinoJson/src/ArduinoJson.h"
 
 // This is also an option, but it relies on the user's config instead of always just working
 //#include <ArduinoJson.h>
