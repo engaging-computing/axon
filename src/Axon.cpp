@@ -189,9 +189,9 @@ bool Axon::connectToWiFi() {
 bool Axon::callAPI() {
 
     // First, we must establish a connection to iSENSE
-    Serial.printf("Connecting to %s on port %d... \n", Config::iSENSEHost.c_str(), Config::iSENSEPort) ;
+    Serial.printf("Connecting to %s on port %d... \n", Config::APIHost.c_str(), Config::APIPort) ;
 
-    if ( !_client.connect(Config::iSENSEHost, Config::iSENSEPort) ) {
+    if ( !_client.connect(Config::APIHost, Config::APIPort) ) {
         Serial.printf("Connection failed!\n") ;
         return false ;
     }
@@ -208,8 +208,8 @@ bool Axon::callAPI() {
     */
 
     // Next, we will construct the HTTP get request
-    String getRequest = "GET " + Config::iSENSEAPIPath + Config::iSENSEAPIEndpoint + " HTTP/1.1\r\n" +
-                        "Host: " + Config::iSENSEHost + "\r\n" +
+    String getRequest = "GET " + Config::APIPath + Config::APIEndpoint + " HTTP/1.1\r\n" +
+                        "Host: " + Config::APIHost + "\r\n" +
                         "Connection: close\r\n\r\n" ;
 
     // Display request being sent for debug purposes if the option has been set in Axon.h
