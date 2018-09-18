@@ -2,7 +2,7 @@
 
 This is a program for the Adafruit Feather Huzzah ESP8266 board.
 
-It will allow the board to retrieve data using the API of isenseproject.org.
+It will allow the board to retrieve data using an API.
 
 Currently, it is very much a work in progress.
 

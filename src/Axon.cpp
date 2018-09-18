@@ -188,7 +188,7 @@ bool Axon::connectToWiFi() {
 
 bool Axon::callAPI() {
 
-    // First, we must establish a connection to iSENSE
+    // First, we must establish a connection to API
     Serial.printf("Connecting to %s on port %d... \n", Config::APIHost.c_str(), Config::APIPort) ;
 
     if ( !_client.connect(Config::APIHost, Config::APIPort) ) {
@@ -198,11 +198,11 @@ bool Axon::callAPI() {
 
     // Now we verify the identity of the server by comparing SHA1 hash fingerprints
     /* FIXME: we cannot do this if we are not using https....
-    if ( _client.verify(Config::iSENSEFingerprint_SHA1.c_str(), Config::iSENSEHost.c_str()) ) {
+    if ( _client.verify(Config::APIFingerprint_SHA1.c_str(), Config::APIHost.c_str()) ) {
         Serial.printf("Server certificate matches locally stored certificate.\nVerification complete\n") ;
     }
     else {
-        Serial.printf("Certificate mismatch! Is the host incorrect or is someone impersonating iSENSE?\n") ;
+        Serial.printf("Certificate mismatch! Is the host incorrect or is someone impersonating API?\n") ;
         return false ;
     }
     */

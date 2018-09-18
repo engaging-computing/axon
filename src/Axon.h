@@ -82,13 +82,13 @@ private:
     // Controls the servo arm attached to SERVO_PIN during object construction
     Servo _servo ;
 
-    // Tracker WiFi client for connection to iSENSE
+    // Tracker WiFi client for connection to API
     //WiFiClientSecure _client ;
     // TODO: switch back to clientsecure when possible
     //      Or not? should secure connection be abandoned at the moment?
     WiFiClient _client ;
 
-    // Raw data recieved from iSENSE
+    // Raw data recieved from API
     // Should be empty unless the device is invalid
     String _payload ;
 
@@ -157,9 +157,9 @@ public:
     bool connectToWiFi() ;
 
     /*
-    * Calls iSENSE API and and requests data based on config
+    * Calls API and requests data based on config
     * 
-    * Return: true if data is retrieved from iSENSE, else false
+    * Return: true if data is retrieved from API, else false
     */
     bool callAPI() ;
 
@@ -200,8 +200,8 @@ public:
     /*
     * A function to test all display components attached to the device.
     * Will activate servo arm and LED lights before returning to the caller
-    * Unlike endlessDebugFlash(), this is not endless. I (@theyoyojo) was
-    * planning to use this as a sort of "boot animation"
+    * Unlike endlessDebugFlash(), this is not endless.
+    * Planning to use this as a sort of "boot animation"
     * 
     * The dance will execute at default speed unless otherwise requested
     * 

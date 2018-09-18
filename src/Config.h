@@ -24,7 +24,7 @@ namespace Config {
 // A joke
 //const String deviceName = "pudding" ;
 
-// The domain name of iSENSE
+// The domain name of an API
 const String APIHost = "isenseproject.org" ;
 
 // The path the the version of the API to be targeted
@@ -34,10 +34,10 @@ const String APIPath = "/api/v1" ;
 // /projects/2156 is Plinko!
 const String APIEndpoint = "/projects/2156" ;
 
-// iSENSE certificate fingerprint FIXME: this is irelevant if https is broken
+// API certificate fingerprint FIXME: this is irelevant if https is broken
 const String APIFingerprint_SHA1 = "04 C2 40 07 A4 AE 98 71 76 A3 60 ED 3A 33 4E 89 28 B7 D4 4C" ;
 
-// Port to use in connection to iSENSE
+// Port to use in connection to API
 const uint16_t APIPort = 80 ;
 
 /*
