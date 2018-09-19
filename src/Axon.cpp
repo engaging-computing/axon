@@ -134,14 +134,11 @@ bool Axon::connectToWiFi() {
         {
             // An "progress bar" ticker that shows the user that the connection is in progress
             Serial.printf(".") ;
-            // FIXME: remove this after testing
-            //Serial.printf("%d<60",i) ;
 
             sleep(500) ;
 
             // If the following print statement is removed, the device will crash on the subsequent line
             // The above statment is no longer true for some reason...
-            //Serial.printf(" ") ;
 
             if ( i >= halfSecondsTimeout ) {
                 Serial.printf("\nUnable to connect to WiFi network %s. Time out after 30 seconds.\n"
@@ -164,7 +161,7 @@ bool Axon::connectToWiFi() {
     }
     // TODO: Case reconnection
     // Should anything else be done?
-    // I beleive the device will automatically attempt to reconenct
+    // I believe the device will automatically attempt to reconnect
 
     
     // If the device is disconnected, the blue LED should switch off.
@@ -188,28 +185,17 @@ bool Axon::connectToWiFi() {
 
 bool Axon::callAPI() {
 
-    // First, we must establish a connection to iSENSE
-    Serial.printf("Connecting to %s on port %d... \n", Config::iSENSEHost.c_str(), Config::iSENSEPort) ;
+    // First, we must establish a connection to an API
+    Serial.printf("Connecting to %s on port %d... \n", Config::APIHost.c_str(), Config::APIPort) ;
 
-    if ( !_client.connect(Config::iSENSEHost, Config::iSENSEPort) ) {
+    if ( !_client.connect(Config::APIHost, Config::APIPort) ) {
         Serial.printf("Connection failed!\n") ;
         return false ;
     }
 
-    // Now we verify the identity of the server by comparing SHA1 hash fingerprints
-    /* FIXME: we cannot do this if we are not using https....
-    if ( _client.verify(Config::iSENSEFingerprint_SHA1.c_str(), Config::iSENSEHost.c_str()) ) {
-        Serial.printf("Server certificate matches locally stored certificate.\nVerification complete\n") ;
-    }
-    else {
-        Serial.printf("Certificate mismatch! Is the host incorrect or is someone impersonating iSENSE?\n") ;
-        return false ;
-    }
-    */
-
     // Next, we will construct the HTTP get request
-    String getRequest = "GET " + Config::iSENSEAPIPath + Config::iSENSEAPIEndpoint + " HTTP/1.1\r\n" +
-                        "Host: " + Config::iSENSEHost + "\r\n" +
+    String getRequest = "GET " + Config::APIPath + Config::APIEndpoint + " HTTP/1.1\r\n" +
+                        "Host: " + Config::APIHost + "\r\n" +
                         "Connection: close\r\n\r\n" ;
 
     // Display request being sent for debug purposes if the option has been set in Axon.h
@@ -291,7 +277,7 @@ bool Axon::callAPI() {
     // Case: Resource not found
     else
     if (responseCode == "404") {
-        Serial.printf("API endpoint not found on ISENSE! Device config invalid.\n") ;
+        Serial.printf("API endpoint not found! Device config invalid.\n") ;
         _payload = "" ;
         _valid = false ;
         return false ;
