@@ -49,14 +49,8 @@
 #include <WiFiClientSecure.h>
 #include <math.h>
 
-//#include "./../test.h"
-
 // Link to included ArduinoJson library
 #include "libs/ArduinoJson/src/ArduinoJson.h"
-
-
-// This is also an option, but it relies on the user's config instead of always just working
-//#include <ArduinoJson.h>
 
 // TODO: remove when callAPI() works
 //  Or: refactor for insecure communication. This honestly will do as none of the data is remotely confidential
@@ -82,7 +76,7 @@ private:
     // Controls the servo arm attached to SERVO_PIN during object construction
     Servo _servo ;
 
-    // Tracker WiFi client for connection to API
+    // Tracker WiFi client for connection to an API
     //WiFiClientSecure _client ;
     // TODO: switch back to clientsecure when possible
     //      Or not? should secure connection be abandoned at the moment?

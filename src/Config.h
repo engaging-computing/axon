@@ -21,8 +21,6 @@
 
 namespace Config {
 
-// A joke
-//const String deviceName = "pudding" ;
 
 // The domain name of an API
 const String APIHost = "isenseproject.org" ;
