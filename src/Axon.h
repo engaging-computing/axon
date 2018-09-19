@@ -195,7 +195,7 @@ public:
     * A function to test all display components attached to the device.
     * Will activate servo arm and LED lights before returning to the caller
     * Unlike endlessDebugFlash(), this is not endless.
-    * Planning to use this as a sort of "boot animation"
+    * Used as a boot animation.
     * 
     * The dance will execute at default speed unless otherwise requested
     * 
