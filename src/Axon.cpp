@@ -277,7 +277,7 @@ bool Axon::callAPI() {
     // Case: Resource not found
     else
     if (responseCode == "404") {
-        Serial.printf("API endpoint not found on the API! Device config invalid.\n") ;
+        Serial.printf("API endpoint not found! Device config invalid.\n") ;
         _payload = "" ;
         _valid = false ;
         return false ;
