@@ -29,11 +29,8 @@ const String APIHost = "isenseproject.org" ;
 const String APIPath = "/api/v1" ;
 
 // The path to the particular endpoint to be targeted within the API
-// /projects/2156 is Plinko!
+// /projects/2156 on the iSENSE API is Plinko!
 const String APIEndpoint = "/projects/2156" ;
-
-// API certificate fingerprint FIXME: this is irelevant if https is broken
-const String APIFingerprint_SHA1 = "04 C2 40 07 A4 AE 98 71 76 A3 60 ED 3A 33 4E 89 28 B7 D4 4C" ;
 
 // Port to use in connection to API
 const uint16_t APIPort = 80 ;
@@ -44,7 +41,7 @@ const uint16_t APIPort = 80 ;
     -- add more display methods
 */
 
-// This may not be the best way to do this
+// FIXME: This may not be the best way to do this
 const String targetKey = "dataSetCount" ;
 
 // The expected range of the retrieved value. The servo arm will be adjusted to show how far
