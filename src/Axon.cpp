@@ -17,6 +17,8 @@
 */
 
 #include "Axon.h"
+#include <cerrno>
+#include <cstring>
 
 using namespace ECG ;
 
@@ -114,7 +116,7 @@ bool Axon::connectToWiFi() {
 
     // Case first connection
     if ( _hasBegunWiFi == false) {
-         WiFi.begin(Keys::WiFiSSID.c_str(), Keys::WiFiPassword.c_str()) ;
+        WiFi.begin(Keys::WiFiSSID.c_str(), Keys::WiFiPassword.c_str()) ;
         _hasBegunWiFi = true ;
 
         // The device is not properly connected to the network unless the WiFi.status()
@@ -185,11 +187,12 @@ bool Axon::connectToWiFi() {
 
 bool Axon::callAPI() {
 
+    //_client.loadCertificate(Config::APICertificateFingerprint.c_str(), Config::APICertificateFingerprint.length()) ;
     // First, we must establish a connection to an API
     Serial.printf("Connecting to %s on port %d... \n", Config::APIHost.c_str(), Config::APIPort) ;
 
     if ( !_client.connect(Config::APIHost, Config::APIPort) ) {
-        Serial.printf("Connection failed!\n") ;
+        Serial.printf("Connection failed!: %s\n", std::strerror(errno)) ;
         return false ;
     }
 
@@ -207,8 +210,6 @@ bool Axon::callAPI() {
     _client.print(getRequest) ;
 
     // The client now reads the response sent by the server
-
-    //TODO: actually save instead of dumping
 
     // Stores each line read from server for each read from the socket
     String line ;
@@ -265,10 +266,13 @@ bool Axon::callAPI() {
     if (responseCode == "200") {
 
         // Ignore first line
-        _client.readStringUntil('\n') ;
+        //_payload = _client.readStringUntil('\n') ;
+        //Serial.printf("First line: %s",_payload.c_str()) ;
+
 
         // Save second line
         _payload = _client.readStringUntil('\n') ;
+        //Serial.printf("Second line: %s",_payload.c_str()) ;
 
         // Ignore the rest
         _client.readString() ;
@@ -297,17 +301,19 @@ bool Axon::parseJson_manualFallback() {
     // methods of class String
 
     // First we check to see if the target JSON key is in the retrieved string
+    int length = sizeof(Config::targetKey)/sizeof(String);
+ 
     Serial.printf("Searching for key (%s) in data (%s)...\n",
-        Config::targetKey.c_str(), _payload.c_str()) ;
+        Config::targetKey[length - 1].c_str(), _payload.c_str()) ;
     
-    uint16_t indexOfKey = _payload.indexOf(Config::targetKey) ;
+    uint16_t indexOfKey = _payload.indexOf(Config::targetKey[length - 1]) ;
     if ( indexOfKey == -1 ) {
         Serial.printf("could not find target key manually\n") ;
         return false ;
     }
     Serial.printf("index of key is:%d\n",indexOfKey) ;
 
-    uint16_t lengthOfKey = Config::targetKey.length() ;
+    uint16_t lengthOfKey = Config::targetKey[length - 1].length() ;
 
     // If the target key is present, the data, if retrieved, will be at the index of the target key
     // plus the length of the key plus two more characters (A '\"' and a ',')
@@ -374,8 +380,10 @@ bool Axon::parseJson() {
 
     // Case: payload exists
     // We use the ArduinoJson library
+    // calculated bufferSize using Arduino
     DynamicJsonBuffer jsonBuffer ;
     JsonObject& dataRoot = jsonBuffer.parseObject(_payload) ;
+    int temp;
 
     // Check for parsing failure
     if (dataRoot.success() == false) {
@@ -401,8 +409,17 @@ bool Axon::parseJson() {
     // If there was no error, get the value corresponding to the key specified in config and save it
     // TODO: method to get nested values
     else {
-        String temp = dataRoot[Config::targetKey] ;
-        _targetValue = temp ;
+        JsonArray& data = dataRoot[Config::targetKey[0]] ;
+        int length = sizeof(Config::targetKey)/sizeof(String);
+        for (int i = 0; i < length; i++)
+        {
+            if (std::isdigit(*Config::targetKey[i].c_str())) {
+                JsonObject& data_object = data[i];
+                temp = data_object[Config::targetKey[i + 1]];
+                i++;
+            }
+        }
+        _targetValue = temp;
         Serial.printf("ArduinoJson parse found value: %s\n", _targetValue.c_str()) ;
         return true ;
     }

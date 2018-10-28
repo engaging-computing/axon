@@ -23,17 +23,19 @@ namespace Config {
 
 
 // The domain name of an API
-const String APIHost = "isenseproject.org" ;
+const String APIHost = "192.168.1.7" ;
 
 // The path the the version of the API to be targeted
-const String APIPath = "/api/v1" ;
+const String APIPath = "/api/UCAPS" ;
+
+const String APICertificateFingerprint = "94 BA D8 CA D7 EE 77 AC D1 3D F8 FF 09 E9 72 D6 FE 6A 7D 8C" ;
 
 // The path to the particular endpoint to be targeted within the API
 // /projects/2156 on the iSENSE API is Plinko!
-const String APIEndpoint = "/projects/2156" ;
+const String APIEndpoint = "/Parking/AvailableParking" ;
 
 // Port to use in connection to API
-const uint16_t APIPort = 80 ;
+const uint16_t APIPort = 3000 ;
 
 /*
     TODO:
@@ -42,13 +44,13 @@ const uint16_t APIPort = 80 ;
 */
 
 // FIXME: This may not be the best way to do this
-const String targetKey = "dataSetCount" ;
+const String targetKey[] = {"data", "0", "AvailableSpaces" } ;
 
 // The expected range of the retrieved value. The servo arm will be adjusted to show how far
 // the retrieved values is between these values. If the value is outside this range, the servo
 // arm will be moved to either extreme position (0 for <= low bound, 180 for >= high bound)
-const double displayLowBound = 1600;
-const double displayHighBound = 1700.0 ;
+const double displayLowBound = 0.0;
+const double displayHighBound = 223.0 ;
 
 } // namespace Config
 

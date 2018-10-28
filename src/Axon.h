@@ -24,7 +24,7 @@
 // Debugging options
 #define SHOW_WIFI_DIAGNISTICS 0
 #define SHOW_HTTP_HEADERS 0
-#define SHOW_PAYLOAD 0
+#define SHOW_PAYLOAD 1
 #define SHOW_SERVO_MOVES 0
 
 // Define LED codes by color
